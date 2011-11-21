@@ -1,0 +1,84 @@
+{
+   "abstract" : "Find the distribution that provides a given package",
+   "author" : [
+      "Jeffrey Ryan Thalhammer <jeff@imaginative-software.com>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 4.300003, CPAN::Meta::Converter version 2.112621",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Package-Locator",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "xt",
+         "examples",
+         "corpus"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Module::Build" : "0.3601"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.3601"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Carp" : 0,
+            "File::Temp" : 0,
+            "LWP::UserAgent" : 0,
+            "Moose" : 0,
+            "MooseX::Types::Path::Class" : 0,
+            "MooseX::Types::URI" : 0,
+            "Parse::CPAN::Packages::Fast" : 0,
+            "Path::Class" : 0,
+            "URI" : 0,
+            "URI::Escape" : 0,
+            "namespace::autoclean" : 0,
+            "perl" : "5.006",
+            "version" : 0
+         }
+      },
+      "test" : {
+         "requires" : {
+            "File::Find" : 0,
+            "Test::More" : 0,
+            "strict" : 0,
+            "warnings" : 0
+         }
+      }
+   },
+   "provides" : {
+      "Package::Locator" : {
+         "file" : "lib/Package/Locator.pm",
+         "version" : "0.001"
+      },
+      "Package::Locator::Index" : {
+         "file" : "lib/Package/Locator/Index.pm",
+         "version" : "0.001"
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/thaljef/Package-Locator/issues"
+      },
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/thaljef/Package-Locator.git",
+         "web" : "https://github.com/thaljef/Package-Locator"
+      }
+   },
+   "version" : "0.001"
+}
+

@@ -1,0 +1,178 @@
+NAME
+    Package::Locator - Find the distribution that provides a given package
+
+VERSION
+    version 0.001
+
+SYNOPSIS
+      use Package::Locator;
+
+      # Basic search...
+      my $locator = Package::Locator->new();
+      my $url = locator->locate( 'Test::More' );
+
+      # Search for first within multiple repositories:
+      my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
+      my $locator = Package::Locator->new( repository_urls => $repos );
+      my $url = locator->locate( 'Test::More' );
+
+      # Search for first where version >= 0.34:
+      my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
+      my $locator = Package::Locator->new( repository_urls => $repos );
+      my $url = locator->locate( 'Test::More' => 0.34);
+
+      # Search for latest where version  >= 0.34:
+      my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
+      my $locator = Package::Locator->new( repository_urls => $repos, get_latest => 1 );
+      my $url = locator->locate( 'Test::More' => 0.34);
+
+DESCRIPTION
+    Package::Locator attempts to answer the question: "Where can I find a
+    distribution that will provide this package?" The answer is divined by
+    searching the indexes for one or more CPAN-like repositories. If you
+    also provide a specific version number, Package::Locator will attempt to
+    find a distribution with that version of the package, or higher.
+
+    Package::Locator only looks at the index files for each repository, and
+    those indexes only contain information about the latest versions of the
+    packages within that repository. So Package::Locator is not BackPAN
+    magic -- you cannot use it to find precisely which distribution a
+    particular package (or file) came from. For that stuff, see "/See Also".
+
+CONSTRUCTOR
+  new( %attributes )
+    All the attributes listed below can be passed to the constructor, and
+    retrieved via accessor methods with the same name. All attributes are
+    read-only, and cannot be changed once the object is constructed.
+
+ATTRIBUTES
+  repository_urls => [ qw(http://somewhere http://somewhere.else) ]
+    An array reference containing the base URLs of the repositories you want
+    to search. These are usually CPAN mirrors, but can be any website or
+    local directory that is organized in a CPAN-like structure. For each
+    request, repositories are searched in the order you specified them here.
+    This defaults to http://cpan.perl.org.
+
+  user_agent => $user_agent_obj
+    The LWP::UserAgent object that will fetch index files. If you do not
+    provide a user agent, then a default one will be constructed for you.
+
+  cache_dir => '/some/directory/path'
+    The path (as a string or Path::Class::Dir object) to a directory where
+    the index file will be cached. If the directory does not exist, it will
+    be created for you. If you do not specify a cache directory, then a
+    temporary directory will be used. The temporary directory will be
+    deleted when your application terminates.
+
+  force => $boolean
+    Causes any cached index files to be removed, thus forcing a new one to
+    be downloaded when the object is constructed. This only has effect if
+    you specified the "cache_dir" attribute. The default is false.
+
+  get_latest => $boolean
+    Always return the distribution from the repository that has the latest
+    version of the requested package, instead of just from the first
+    repository where that package was found. If you requested a particular
+    version of package, then the returned distribution will always contain
+    that package version or greater, regardless of the "get_latest" setting.
+    Default is false.
+
+METHODS
+  locate( 'Foo::Bar' )
+  locate( 'Foo::Bar' => '1.2' )
+  locate( '/F/FO/FOO/Bar-1.2.tar.gz' )
+    Given the name of a package, searches all the repository indexes and
+    returns the URL to a distribution containing that package. If you
+    specify a version, then you'll always get a distribution that contains
+    that version of the package or higher. If the "get_latest" attribute is
+    true, then you'll always get the distribution that contains latest
+    version of the package that can be found on all the indexes. Otherwise
+    you'll just get the first distribution we can find that satisfies your
+    request.
+
+    If you give a distribution path instead (i.e. anything that has slashes
+    '/' in it) then you'll just get back the URL to the first distribution
+    we find at that path in any of the repository indexes.
+
+    If neither the package nor the distribution path can be found in any of
+    the indexes, returns undef.
+
+MOTIVATION
+    The CPAN module also provides a mechanism for locating packages or
+    distributions, much like Package::Locator does. However, CPAN assumes
+    that all repositories are CPAN mirrors, so it only searches the first
+    repository that it can contact.
+
+    My secret ambition is to fill the world with lots of DarkPAN
+    repositories -- each with its own set of distributions. For that
+    scenario, I need to search multiple repositories at the same time.
+
+SEE ALSO
+    If you need to locate a distribution that contains a precise version of
+    a file rather than just a version that is "new enough", then look at
+    some of these:
+
+    Dist::Surveyor BackPAN::Index BackPAN::Version::Discover
+
+SUPPORT
+  Perldoc
+    You can find documentation for this module with the perldoc command.
+
+      perldoc Package::Locator
+
+  Websites
+    The following websites have more information about this module, and may
+    be of help to you. As always, in addition to those websites please use
+    your favorite search engine to discover more resources.
+
+    *   Search CPAN
+
+        The default CPAN search engine, useful to view POD in HTML format.
+
+        <http://search.cpan.org/dist/Package-Locator>
+
+    *   CPAN Ratings
+
+        The CPAN Ratings is a website that allows community ratings and
+        reviews of Perl modules.
+
+        <http://cpanratings.perl.org/d/Package-Locator>
+
+    *   CPAN Testers
+
+        The CPAN Testers is a network of smokers who run automated tests on
+        uploaded CPAN distributions.
+
+        <http://www.cpantesters.org/distro/P/Package-Locator>
+
+    *   CPAN Testers Matrix
+
+        The CPAN Testers Matrix is a website that provides a visual way to
+        determine what Perls/platforms PASSed for a distribution.
+
+        <http://matrix.cpantesters.org/?dist=Package-Locator>
+
+    *   CPAN Testers Dependencies
+
+        The CPAN Testers Dependencies is a website that shows a chart of the
+        test results of all dependencies for a distribution.
+
+        <http://deps.cpantesters.org/?module=Package::Locator>
+
+  Bugs / Feature Requests
+    <https://github.com/thaljef/Package-Locator/issues>
+
+  Source Code
+    <https://github.com/thaljef/Package-Locator>
+
+      git clone git://github.com/thaljef/Package-Locator.git
+
+AUTHOR
+    Jeffrey Ryan Thalhammer <jeff@imaginative-software.com>
+
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2011 by Imaginative Software Systems.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
+
