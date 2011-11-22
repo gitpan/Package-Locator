@@ -12,11 +12,14 @@ lib/Package/Locator.pm
 lib/Package/Locator/Index.pm
 perlcritic.ini
 t/00-compile.t
+t/02-functional.t
+t/03-exceptions.t
+t/repos/a/modules/02packages.details.txt.gz
+t/repos/b/modules/02packages.details.txt.gz
 weaver.ini
 xt/author/critic.t
 xt/author/pod-spell.t
 xt/release/distmeta.t
 xt/release/pod-coverage.t
 xt/release/pod-syntax.t
-xt/release/portability.t
 xt/release/test-version.t

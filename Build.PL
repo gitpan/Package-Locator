@@ -8,7 +8,9 @@ use Module::Build 0.3601;
 my %module_build_args = (
   "build_requires" => {
     "File::Find" => 0,
+    "FindBin" => 0,
     "Module::Build" => "0.3601",
+    "Test::Exception" => 0,
     "Test::More" => 0,
     "strict" => 0,
     "warnings" => 0
@@ -21,7 +23,7 @@ my %module_build_args = (
     "Jeffrey Ryan Thalhammer <jeff\@imaginative-software.com>"
   ],
   "dist_name" => "Package-Locator",
-  "dist_version" => "0.001",
+  "dist_version" => "0.002",
   "license" => "perl",
   "module_name" => "Package::Locator",
   "recommends" => {},

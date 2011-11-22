@@ -2,7 +2,7 @@ NAME
     Package::Locator - Find the distribution that provides a given package
 
 VERSION
-    version 0.001
+    version 0.002
 
 SYNOPSIS
       use Package::Locator;

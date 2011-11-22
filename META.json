@@ -52,6 +52,8 @@
       "test" : {
          "requires" : {
             "File::Find" : 0,
+            "FindBin" : 0,
+            "Test::Exception" : 0,
             "Test::More" : 0,
             "strict" : 0,
             "warnings" : 0
@@ -61,11 +63,11 @@
    "provides" : {
       "Package::Locator" : {
          "file" : "lib/Package/Locator.pm",
-         "version" : "0.001"
+         "version" : "0.002"
       },
       "Package::Locator::Index" : {
          "file" : "lib/Package/Locator/Index.pm",
-         "version" : "0.001"
+         "version" : "0.002"
       }
    },
    "release_status" : "stable",
@@ -79,6 +81,6 @@
          "web" : "https://github.com/thaljef/Package-Locator"
       }
    },
-   "version" : "0.001"
+   "version" : "0.002"
 }
 

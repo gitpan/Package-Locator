@@ -18,7 +18,7 @@ use namespace::autoclean;
 
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.001'; # VERSION
+our $VERSION = '0.002'; # VERSION
 
 #------------------------------------------------------------------------------
 
@@ -103,9 +103,15 @@ sub locate {
 
     my ($package, $version, $dist);
 
-    ($package, $version) = @args         if @args == 2;
-    ($package, $version) = ($args[0], 0) if $args[0] !~ m{/}x;
-    $dist = $args[0];
+    if (@args == 2) {
+        ($package, $version) = @args;
+    }
+    elsif ($args[0] =~ m{/}x) {
+        $dist = $args[0];
+    }
+    else {
+        ($package, $version) = ($args[0], 0);
+    }
 
     return $self->_locate_package($package, $version) if $package;
     return $self->_locate_dist($dist) if $dist;
@@ -133,7 +139,7 @@ sub _locate_package {
         last unless $self->get_latest();
 
         ($found_in_index, $latest_found_package) = ($index, $found_package)
-            if $self->__compare_packages($latest_found_package, $found_package) == 1;
+            if $self->__compare_packages($found_package, $latest_found_package) == 1;
     }
 
 
@@ -155,7 +161,7 @@ sub _locate_dist {
     for my $index ( $self->_indexes() ) {
         if ( my $found = $index->lookup_dist($dist_path) ) {
             my $base_url = $index->repository_url();
-            return URI->new( "$base_url/authors/id" . $found->prefix() );
+            return URI->new( "$base_url/authors/id/" . $found->prefix() );
         }
     }
 
@@ -213,7 +219,7 @@ Package::Locator - Find the distribution that provides a given package
 
 =head1 VERSION
 
-version 0.001
+version 0.002
 
 =head1 SYNOPSIS
 
