@@ -7,6 +7,7 @@ use MooseX::Types::URI qw(Uri);
 use MooseX::Types::Path::Class;
 
 use Carp;
+use Try::Tiny;
 use Path::Class;
 use File::Temp;
 use Parse::CPAN::Packages::Fast;
@@ -18,7 +19,7 @@ use namespace::autoclean;
 
 #------------------------------------------------------------------------
 
-our $VERSION = '0.002'; # VERSION
+our $VERSION = '0.003'; # VERSION
 
 #------------------------------------------------------------------------
 
@@ -91,7 +92,9 @@ sub BUILDARGS {
 sub _build__index_file {
     my ($self) = @_;
 
-    my $repos_url = $self->repository_url->canonical();;
+    my $repos_url = $self->repository_url->canonical()->as_string();
+    $repos_url =~ s{ /*$ }{}mx;         # Remove trailing slash
+    $repos_url = URI->new($repos_url);  # Reconstitute as URI object
 
     my $cache_dir = $self->cache_dir->subdir( URI::Escape::uri_escape($repos_url) );
     $self->__mkpath($cache_dir);
@@ -132,7 +135,7 @@ sub __handle_ua_response {
 sub __mkpath {
     my ($self, $dir) = @_;
 
-    return if -e $dir;
+    return 1 if -e $dir;
     $dir = dir($dir) unless eval { $dir->isa('Path::Class::Dir') };
     return $dir->mkpath() or croak "Failed to make directory $dir: $!";
 }
@@ -143,7 +146,14 @@ sub __mkpath {
 sub lookup_package {
     my ($self, $package_name) = @_;
 
-    my $found = eval { $self->_index->package($package_name) };
+    # Parse::CPAN::Packages::Fast will throw an exception if the index
+    # does not contain the requested package.  If that happens we just
+    # want to return undef.  But we still want all other exceptions
+    # (such as failure to fetch the index file) to bubble up.
+
+    my $found;
+    try   { $found = $self->_index->package($package_name) }
+    catch { croak $_ unless m/Package $package_name does not exist/ };  ## no critic qw(RequireExtendedFormatting)
 
     return $found ? $found : ();
 }
@@ -182,7 +192,7 @@ Package::Locator::Index - The package index of a repository
 
 =head1 VERSION
 
-version 0.002
+version 0.003
 
 =head1 SYNOPSIS
 
