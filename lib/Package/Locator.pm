@@ -9,6 +9,7 @@ use Carp;
 use File::Temp;
 use Path::Class;
 use LWP::UserAgent;
+use CPAN::DistnameInfo;
 use URI;
 
 use Package::Locator::Index;
@@ -18,7 +19,7 @@ use namespace::autoclean;
 
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.003'; # VERSION
+our $VERSION = '0.004'; # VERSION
 
 #------------------------------------------------------------------------------
 
@@ -61,26 +62,18 @@ has force => (
 #------------------------------------------------------------------------------
 
 
-has get_latest => (
-   is         => 'ro',
-   isa        => 'Bool',
-   default    => 0,
-);
-
-
-#------------------------------------------------------------------------------
-
-has _indexes => (
+has indexes => (
    is         => 'ro',
    isa        => 'ArrayRef[Package::Locator::Index]',
    auto_deref => 1,
    lazy_build => 1,
+   init_arg   => undef,
 );
 
 
 #------------------------------------------------------------------------------
 
-sub _build__indexes {
+sub _build_indexes {
     my ($self) = @_;
 
     my @indexes = map { Package::Locator::Index->new( force          => $self->force(),
@@ -96,47 +89,61 @@ sub _build__indexes {
 
 
 sub locate {
-    my ($self, @args) = @_;
+    my ($self, %args) = @_;
 
-    croak 'Must specify package, package => version, or dist'
-        if @args < 1 or @args > 2;
+    $self->_validate_locate_args(%args);
 
-    my ($package, $version, $dist);
-
-    if (@args == 2) {
-        ($package, $version) = @args;
-    }
-    elsif ($args[0] =~ m{/}x) {
-        $dist = $args[0];
+    if ($args{package}) {
+        my $package = $args{package};
+        my $version = $args{version} || 0;
+        my $latest  = $args{latest}  || 0;
+        return $self->_locate_package($package, $version, $latest);
     }
     else {
-        ($package, $version) = ($args[0], 0);
+        my $dist = $args{distribution};
+        return $self->_locate_dist($dist);
     }
+}
 
-    return $self->_locate_package($package, $version) if $package;
-    return $self->_locate_dist($dist) if $dist;
-    return; #Should never get here!
+#------------------------------------------------------------------------------
+
+sub _validate_locate_args {
+    my ($self, %args) = @_;
+
+    croak 'Cannot specify latest and distribution together'
+        if $args{distribution} and $args{latest};
+
+    croak 'Cannot specify version and distribution together'
+        if $args{distribution} and $args{version};
+
+    croak 'Cannot specify package and distribution together'
+        if $args{distribution} and $args{package};
+
+    croak 'Must specify package or distribution'
+        if not ( $args{distribution} or $args{package} );
+
+    return 1;
 }
 
 #------------------------------------------------------------------------------
 
 sub _locate_package {
-    my ($self, $package, $version) = @_;
+    my ($self, $package, $version, $latest) = @_;
 
     my $wanted_version = version->parse($version);
 
     my ($latest_found_package, $found_in_index);
-    for my $index ( $self->_indexes() ) {
+    for my $index ( $self->indexes() ) {
 
-        my $found_package = $index->lookup_package($package);
+        my $found_package = $index->packages->{$package};
         next if not $found_package;
 
-        my $found_package_version = version->parse( $found_package->version() );
+        my $found_package_version = version->parse( $found_package->{version} );
         next if $found_package_version < $wanted_version;
 
         $found_in_index       ||= $index;
         $latest_found_package ||= $found_package;
-        last unless $self->get_latest();
+        last unless $latest;
 
         ($found_in_index, $latest_found_package) = ($index, $found_package)
             if $self->__compare_packages($found_package, $latest_found_package) == 1;
@@ -145,9 +152,8 @@ sub _locate_package {
 
     if ($latest_found_package) {
         my $base_url = $found_in_index->repository_url();
-        my $latest_dist = $latest_found_package->distribution();
-        my $latest_dist_prefix = $latest_dist->prefix();
-        return  URI->new( "$base_url/authors/id/" . $latest_dist_prefix );
+        my $latest_dist_path = $latest_found_package->{distribution};
+        return  URI->new( "$base_url/authors/id/" . $latest_dist_path );
     }
 
     return;
@@ -158,10 +164,10 @@ sub _locate_package {
 sub _locate_dist {
     my ($self, $dist_path) = @_;
 
-    for my $index ( $self->_indexes() ) {
-        if ( my $found = $index->lookup_dist($dist_path) ) {
+    for my $index ( $self->indexes() ) {
+        if ( my $found_dist = $index->distributions->{$dist_path} ) {
             my $base_url = $index->repository_url();
-            return URI->new( "$base_url/authors/id/" . $found->prefix() );
+            return URI->new( "$base_url/authors/id/" . $found_dist->{path} );
         }
     }
 
@@ -173,28 +179,21 @@ sub _locate_dist {
 sub __compare_packages {
     my ($self, $pkg_a, $pkg_b) = @_;
 
-    my $pkg_a_version = version->parse( $pkg_a->version() );
-    my $pkg_b_version = version->parse( $pkg_b->version() );
+    my $pkg_a_version = $self->__versionize( $pkg_a->{version} );
+    my $pkg_b_version = $self->__versionize( $pkg_b->{version} );
 
-    my $dist_a_name  = $pkg_a->distribution->dist();
-    my $dist_b_name  = $pkg_b->distribution->dist();
-    my $have_same_dist_name = $dist_a_name eq $dist_b_name;
-
-    my $dist_a_version = $pkg_a->distribution->version();
-    my $dist_b_version = $pkg_b->distribution->version();
-
-    return    ($pkg_a_version  <=> $pkg_b_version)
-           || ($have_same_dist_name && ($dist_a_version <=> $dist_b_version) );
+    # TODO: compare dist mtimes (but they are on the server!)
+    return  $pkg_a_version  <=> $pkg_b_version;
 }
 
 #------------------------------------------------------------------------------
 
-sub __mkpath {
-    my ($self, $dir) = @_;
+sub __versionize {
+    my ($self, $version) = @_;
 
-    return if -e $dir;
-    $dir = dir($dir) unless eval { $dir->isa('Path::Class::Dir') };
-    return $dir->mkpath() or croak "Failed to make directory $dir: $!";
+    my $v = eval { version->parse($version) };
+
+    return defined $v ? $v : version->new(0);
 }
 
 #------------------------------------------------------------------------------
@@ -219,7 +218,7 @@ Package::Locator - Find the distribution that provides a given package
 
 =head1 VERSION
 
-version 0.003
+version 0.004
 
 =head1 SYNOPSIS
 
@@ -227,22 +226,27 @@ version 0.003
 
   # Basic search...
   my $locator = Package::Locator->new();
-  my $url = locator->locate( 'Test::More' );
+  my $url = locator->locate( package => 'Test::More' );
 
   # Search for first within multiple repositories:
   my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
   my $locator = Package::Locator->new( repository_urls => $repos );
-  my $url = locator->locate( 'Test::More' );
+  my $url = locator->locate( package => 'Test::More' );
 
   # Search for first where version >= 0.34:
   my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
   my $locator = Package::Locator->new( repository_urls => $repos );
-  my $url = locator->locate( 'Test::More' => 0.34);
+  my $url = locator->locate( package => 'Test::More' version => 0.34);
 
   # Search for latest where version  >= 0.34:
   my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
-  my $locator = Package::Locator->new( repository_urls => $repos, get_latest => 1 );
-  my $url = locator->locate( 'Test::More' => 0.34);
+  my $locator = Package::Locator->new( repository_urls => $repos );
+  my $url = locator->locate( package => 'Test::More' version => 0.34, latest => 1);
+
+  # Search for specific dist on multiple repositories...:
+  my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
+  my $locator = Package::Locator->new( repository_urls => $repos );
+  my $url = locator->locate( distribution => 'A/AU/AUTHOR/Foo-1.0.tar.gz');
 
 =head1 DESCRIPTION
 
@@ -251,7 +255,8 @@ a distribution that will provide this package?"  The answer is divined
 by searching the indexes for one or more CPAN-like repositories.  If
 you also provide a specific version number, L<Package::Locator> will
 attempt to find a distribution with that version of the package, or
-higher.
+higher.  You can also ask to find the latest version of a package
+across all the indexes.
 
 L<Package::Locator> only looks at the index files for each repository,
 and those indexes only contain information about the latest versions
@@ -298,35 +303,40 @@ Causes any cached index files to be removed, thus forcing a new one to
 be downloaded when the object is constructed.  This only has effect if
 you specified the C<cache_dir> attribute.  The default is false.
 
-=head2 get_latest => $boolean
+=head2 indexes()
 
-Always return the distribution from the repository that has the latest
-version of the requested package, instead of just from the first
-repository where that package was found.  If you requested a
-particular version of package, then the returned distribution will
-always contain that package version or greater, regardless of the
-C<get_latest> setting.  Default is false.
+Returns a list of L<Package::Locator::Index> objects representing the
+indexes of each of the repositories.  The indexes are only populated
+on-demand when the C<locate> method is called.  The order of the
+indexes is the same as the order of the repositories defined by the
+C<repository_urls> attribute.
 
 =head1 METHODS
 
-=head2 locate( 'Foo::Bar' )
+=head2 locate( package => 'Foo::Bar' )
 
-=head2 locate( 'Foo::Bar' => '1.2' )
+=head2 locate( package => 'Foo::Bar', latest => 1 )
 
-=head2 locate( '/F/FO/FOO/Bar-1.2.tar.gz' )
+=head2 locate( package => 'Foo::Bar', version => '1.2')
+
+=head2 locate( package => 'Foo::Bar', version => '1.2', latest => 1 )
+
+=head2 locate ( distribution => 'A/AU/AUTHOR/Foo-Bar-1.0.tar.gz' )
 
 Given the name of a package, searches all the repository indexes and
-returns the URL to a distribution containing that package.  If you
-specify a version, then you'll always get a distribution that contains
-that version of the package or higher.  If the C<get_latest> attribute
-is true, then you'll always get the distribution that contains latest
-version of the package that can be found on all the indexes.
-Otherwise you'll just get the first distribution we can find that
-satisfies your request.
+returns the URL to a distribution containing that requested package,
+or the distribution you requested.
 
-If you give a distribution path instead (i.e. anything that has
-slashes '/' in it) then you'll just get back the URL to the first
-distribution we find at that path in any of the repository indexes.
+If you also specify a C<version>, then you'll always get a
+distribution that contains that version of the package or higher.  If
+you also specify C<latest> then you'll always get the distribution
+that contains the latest version of the package that can be found in
+all the indexes.  Otherwise you'll just get the first distribution we
+can find that satisfies your request.
+
+If you give a distribution path instead, then you'll just get back the
+URL to the first distribution we find at that path in any of the
+repository indexes.
 
 If neither the package nor the distribution path can be found in any
 of the indexes, returns undef.
@@ -349,7 +359,9 @@ of a file rather than just a version that is "new enough", then look
 at some of these:
 
 L<Dist::Surveyor>
+
 L<BackPAN::Index>
+
 L<BackPAN::Version::Discover>
 
 =head1 SUPPORT

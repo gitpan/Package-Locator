@@ -2,36 +2,42 @@ NAME
     Package::Locator - Find the distribution that provides a given package
 
 VERSION
-    version 0.003
+    version 0.004
 
 SYNOPSIS
       use Package::Locator;
 
       # Basic search...
       my $locator = Package::Locator->new();
-      my $url = locator->locate( 'Test::More' );
+      my $url = locator->locate( package => 'Test::More' );
 
       # Search for first within multiple repositories:
       my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
       my $locator = Package::Locator->new( repository_urls => $repos );
-      my $url = locator->locate( 'Test::More' );
+      my $url = locator->locate( package => 'Test::More' );
 
       # Search for first where version >= 0.34:
       my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
       my $locator = Package::Locator->new( repository_urls => $repos );
-      my $url = locator->locate( 'Test::More' => 0.34);
+      my $url = locator->locate( package => 'Test::More' version => 0.34);
 
       # Search for latest where version  >= 0.34:
       my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
-      my $locator = Package::Locator->new( repository_urls => $repos, get_latest => 1 );
-      my $url = locator->locate( 'Test::More' => 0.34);
+      my $locator = Package::Locator->new( repository_urls => $repos );
+      my $url = locator->locate( package => 'Test::More' version => 0.34, latest => 1);
+
+      # Search for specific dist on multiple repositories...:
+      my $repos = [ qw(http://cpan.pair.com http://my.company.com/DPAN) ];
+      my $locator = Package::Locator->new( repository_urls => $repos );
+      my $url = locator->locate( distribution => 'A/AU/AUTHOR/Foo-1.0.tar.gz');
 
 DESCRIPTION
     Package::Locator attempts to answer the question: "Where can I find a
     distribution that will provide this package?" The answer is divined by
     searching the indexes for one or more CPAN-like repositories. If you
     also provide a specific version number, Package::Locator will attempt to
-    find a distribution with that version of the package, or higher.
+    find a distribution with that version of the package, or higher. You can
+    also ask to find the latest version of a package across all the indexes.
 
     Package::Locator only looks at the index files for each repository, and
     those indexes only contain information about the latest versions of the
@@ -69,30 +75,33 @@ ATTRIBUTES
     be downloaded when the object is constructed. This only has effect if
     you specified the "cache_dir" attribute. The default is false.
 
-  get_latest => $boolean
-    Always return the distribution from the repository that has the latest
-    version of the requested package, instead of just from the first
-    repository where that package was found. If you requested a particular
-    version of package, then the returned distribution will always contain
-    that package version or greater, regardless of the "get_latest" setting.
-    Default is false.
+  indexes()
+    Returns a list of Package::Locator::Index objects representing the
+    indexes of each of the repositories. The indexes are only populated
+    on-demand when the "locate" method is called. The order of the indexes
+    is the same as the order of the repositories defined by the
+    "repository_urls" attribute.
 
 METHODS
-  locate( 'Foo::Bar' )
-  locate( 'Foo::Bar' => '1.2' )
-  locate( '/F/FO/FOO/Bar-1.2.tar.gz' )
+  locate( package => 'Foo::Bar' )
+  locate( package => 'Foo::Bar', latest => 1 )
+  locate( package => 'Foo::Bar', version => '1.2')
+  locate( package => 'Foo::Bar', version => '1.2', latest => 1 )
+  locate ( distribution => 'A/AU/AUTHOR/Foo-Bar-1.0.tar.gz' )
     Given the name of a package, searches all the repository indexes and
-    returns the URL to a distribution containing that package. If you
-    specify a version, then you'll always get a distribution that contains
-    that version of the package or higher. If the "get_latest" attribute is
-    true, then you'll always get the distribution that contains latest
-    version of the package that can be found on all the indexes. Otherwise
-    you'll just get the first distribution we can find that satisfies your
-    request.
+    returns the URL to a distribution containing that requested package, or
+    the distribution you requested.
 
-    If you give a distribution path instead (i.e. anything that has slashes
-    '/' in it) then you'll just get back the URL to the first distribution
-    we find at that path in any of the repository indexes.
+    If you also specify a "version", then you'll always get a distribution
+    that contains that version of the package or higher. If you also specify
+    "latest" then you'll always get the distribution that contains the
+    latest version of the package that can be found in all the indexes.
+    Otherwise you'll just get the first distribution we can find that
+    satisfies your request.
+
+    If you give a distribution path instead, then you'll just get back the
+    URL to the first distribution we find at that path in any of the
+    repository indexes.
 
     If neither the package nor the distribution path can be found in any of
     the indexes, returns undef.
@@ -112,7 +121,11 @@ SEE ALSO
     a file rather than just a version that is "new enough", then look at
     some of these:
 
-    Dist::Surveyor BackPAN::Index BackPAN::Version::Discover
+    Dist::Surveyor
+
+    BackPAN::Index
+
+    BackPAN::Version::Discover
 
 SUPPORT
   Perldoc

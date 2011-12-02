@@ -4,7 +4,7 @@
       "Jeffrey Ryan Thalhammer <jeff@imaginative-software.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300003, CPAN::Meta::Converter version 2.112621",
+   "generated_by" : "Dist::Zilla version 4.300003, CPAN::Meta::Converter version 2.112150",
    "license" : [
       "perl_5"
    ],
@@ -34,42 +34,41 @@
       },
       "runtime" : {
          "requires" : {
-            "Carp" : 0,
-            "File::Temp" : 0,
-            "LWP::UserAgent" : 0,
-            "Moose" : 0,
-            "MooseX::Types::Path::Class" : 0,
-            "MooseX::Types::URI" : 0,
-            "Parse::CPAN::Packages::Fast" : 0,
-            "Path::Class" : 0,
-            "Try::Tiny" : 0,
-            "URI" : 0,
-            "URI::Escape" : 0,
-            "namespace::autoclean" : 0,
+            "CPAN::DistnameInfo" : "0",
+            "Carp" : "0",
+            "File::Temp" : "0",
+            "LWP::UserAgent" : "0",
+            "Moose" : "0",
+            "MooseX::Types::Path::Class" : "0",
+            "MooseX::Types::URI" : "0",
+            "Path::Class" : "0",
+            "PerlIO::gzip" : "0",
+            "URI" : "0",
+            "URI::Escape" : "0",
+            "namespace::autoclean" : "0",
             "perl" : "5.006",
-            "version" : 0
+            "version" : "0"
          }
       },
       "test" : {
          "requires" : {
-            "File::Find" : 0,
-            "FindBin" : 0,
-            "PerlIO::gzip" : 0,
-            "Test::Exception" : 0,
-            "Test::More" : 0,
-            "strict" : 0,
-            "warnings" : 0
+            "File::Find" : "0",
+            "FindBin" : "0",
+            "Test::Exception" : "0",
+            "Test::More" : "0",
+            "strict" : "0",
+            "warnings" : "0"
          }
       }
    },
    "provides" : {
       "Package::Locator" : {
          "file" : "lib/Package/Locator.pm",
-         "version" : "0.003"
+         "version" : "0.004"
       },
       "Package::Locator::Index" : {
          "file" : "lib/Package/Locator/Index.pm",
-         "version" : "0.003"
+         "version" : "0.004"
       }
    },
    "release_status" : "stable",
@@ -83,6 +82,6 @@
          "web" : "https://github.com/thaljef/Package-Locator"
       }
    },
-   "version" : "0.003"
+   "version" : "0.004"
 }
 

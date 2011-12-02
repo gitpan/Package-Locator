@@ -6,7 +6,6 @@ build_requires:
   File::Find: 0
   FindBin: 0
   Module::Build: 0.3601
-  PerlIO::gzip: 0
   Test::Exception: 0
   Test::More: 0
   strict: 0
@@ -14,7 +13,7 @@ build_requires:
 configure_requires:
   Module::Build: 0.3601
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300003, CPAN::Meta::Converter version 2.112621'
+generated_by: 'Dist::Zilla version 4.300003, CPAN::Meta::Converter version 2.112150'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -29,20 +28,20 @@ no_index:
 provides:
   Package::Locator:
     file: lib/Package/Locator.pm
-    version: 0.003
+    version: 0.004
   Package::Locator::Index:
     file: lib/Package/Locator/Index.pm
-    version: 0.003
+    version: 0.004
 requires:
+  CPAN::DistnameInfo: 0
   Carp: 0
   File::Temp: 0
   LWP::UserAgent: 0
   Moose: 0
   MooseX::Types::Path::Class: 0
   MooseX::Types::URI: 0
-  Parse::CPAN::Packages::Fast: 0
   Path::Class: 0
-  Try::Tiny: 0
+  PerlIO::gzip: 0
   URI: 0
   URI::Escape: 0
   namespace::autoclean: 0
@@ -51,4 +50,4 @@ requires:
 resources:
   bugtracker: https://github.com/thaljef/Package-Locator/issues
   repository: git://github.com/thaljef/Package-Locator.git
-version: 0.003
+version: 0.004
