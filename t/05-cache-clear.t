@@ -1,13 +1,10 @@
-#!perl
 
 use strict;
 use warnings;
 
 use Path::Class;
 use FindBin qw($Bin);
-use URI::Escape qw(uri_escape);
 use File::Temp qw(tempdir);
-use PerlIO::gzip;
 
 use Test::More;
 
@@ -31,29 +28,19 @@ is($found, "file://$repos_dir/a/authors/id/A/AU/AUTHOR/Foo-1.0.tar.gz", 'Located
 $found = $locator->locate(package => 'Foo', version => 2.0);
 is($found, "file://$repos_dir/b/authors/id/A/AU/AUTHOR/Foo-2.0.tar.gz", 'Located Foo-2.0');
 
-for my $url (@repos_urls) {
-    my $cache_file = file( $temp_dir, uri_escape($url), '02packages.details.txt.gz' );
-    ok( -e $cache_file, "Cache file $cache_file exists" );
+my @index_files = map { $_->index_file } $locator->indexes();
+ok(-e $_, 'Index file exists') for @index_files;
 
-    # Erase contents of cache file.  But we still need the standard gzip header
-    # or else there will be an exception when we try to open the file later.
-    open my $fh, '>:gzip', $cache_file;
-    print $fh '';
-    close $fh;
-}
-
-
-$locator = Package::Locator->new( repository_urls => \@repos_urls,
-                                        cache_dir => $temp_dir );
+$locator->clear_cache();
+ok(! -e $_, 'Index file removed by clear_cache()') for @index_files;
 
 $found = $locator->locate(package => 'Foo', version => 1.0);
-is($found, undef, 'Did not find Foo-1.0 in empty cache');
+is($found, "file://$repos_dir/a/authors/id/A/AU/AUTHOR/Foo-1.0.tar.gz", 'Located Foo-1.0 again');
 
 $found = $locator->locate(package => 'Foo', version => 2.0);
-is($found, undef, 'Did not find Foo-2.0 in empty cache');
+is($found, "file://$repos_dir/b/authors/id/A/AU/AUTHOR/Foo-2.0.tar.gz", 'Located Foo-2.0 again');
+ok(-e $_, 'Index file restored after calling locate()') for @index_files;
 
-#------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 done_testing();
-
-

@@ -19,7 +19,7 @@ use namespace::autoclean;
 
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.004'; # VERSION
+our $VERSION = '0.006'; # VERSION
 
 #------------------------------------------------------------------------------
 
@@ -164,12 +164,14 @@ sub _locate_package {
 sub _locate_dist {
     my ($self, $dist_path) = @_;
 
-    for my $index ( $self->indexes() ) {
-        if ( my $found_dist = $index->distributions->{$dist_path} ) {
-            my $base_url = $index->repository_url();
-            return URI->new( "$base_url/authors/id/" . $found_dist->{path} );
-        }
+    for my $index ( $self->indexes ) {
+        my $base_url = $index->repository_url();
+        my $dist_url =  URI->new("$base_url/authors/id/$dist_path");
+
+        return $dist_url if $index->distributions->{$dist_path};
+        return $dist_url if $self->user_agent->head($dist_url)->is_success;
     }
+
 
     return;
 }
@@ -198,6 +200,21 @@ sub __versionize {
 
 #------------------------------------------------------------------------------
 
+
+sub clear_cache {
+    my ($self) = @_;
+
+    for my $index ( $self->indexes() ) {
+        $index->index_file->remove();
+    }
+
+    $self->clear_indexes();
+
+    return $self;
+}
+
+#------------------------------------------------------------------------------
+
 __PACKAGE__->meta->make_immutable();
 
 #------------------------------------------------------------------------------
@@ -210,7 +227,7 @@ __PACKAGE__->meta->make_immutable();
 
 =for :stopwords Jeffrey Ryan Thalhammer Imaginative Software Systems cpan testmatrix url
 annocpan anno bugtracker rt cpants kwalitee diff irc mailto metadata
-placeholders
+placeholders metacpan
 
 =head1 NAME
 
@@ -218,7 +235,7 @@ Package::Locator - Find the distribution that provides a given package
 
 =head1 VERSION
 
-version 0.004
+version 0.006
 
 =head1 SYNOPSIS
 
@@ -303,6 +320,8 @@ Causes any cached index files to be removed, thus forcing a new one to
 be downloaded when the object is constructed.  This only has effect if
 you specified the C<cache_dir> attribute.  The default is false.
 
+=head1 METHODS
+
 =head2 indexes()
 
 Returns a list of L<Package::Locator::Index> objects representing the
@@ -310,8 +329,6 @@ indexes of each of the repositories.  The indexes are only populated
 on-demand when the C<locate> method is called.  The order of the
 indexes is the same as the order of the repositories defined by the
 C<repository_urls> attribute.
-
-=head1 METHODS
 
 =head2 locate( package => 'Foo::Bar' )
 
@@ -340,6 +357,11 @@ repository indexes.
 
 If neither the package nor the distribution path can be found in any
 of the indexes, returns undef.
+
+=head2 clear_cache()
+
+Deletes the cached index files.  Any subsequent calls to the C<locate>
+method will cause the index files to be fetched anew.
 
 =head1 MOTIVATION
 
@@ -407,7 +429,7 @@ L<http://www.cpantesters.org/distro/P/Package-Locator>
 
 CPAN Testers Matrix
 
-The CPAN Testers Matrix is a website that provides a visual way to determine what Perls/platforms PASSed for a distribution.
+The CPAN Testers Matrix is a website that provides a visual overview of the test results for a distribution on various Perls/platforms.
 
 L<http://matrix.cpantesters.org/?dist=Package-Locator>
 

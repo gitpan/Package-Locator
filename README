@@ -2,7 +2,7 @@ NAME
     Package::Locator - Find the distribution that provides a given package
 
 VERSION
-    version 0.004
+    version 0.006
 
 SYNOPSIS
       use Package::Locator;
@@ -75,6 +75,7 @@ ATTRIBUTES
     be downloaded when the object is constructed. This only has effect if
     you specified the "cache_dir" attribute. The default is false.
 
+METHODS
   indexes()
     Returns a list of Package::Locator::Index objects representing the
     indexes of each of the repositories. The indexes are only populated
@@ -82,7 +83,6 @@ ATTRIBUTES
     is the same as the order of the repositories defined by the
     "repository_urls" attribute.
 
-METHODS
   locate( package => 'Foo::Bar' )
   locate( package => 'Foo::Bar', latest => 1 )
   locate( package => 'Foo::Bar', version => '1.2')
@@ -105,6 +105,10 @@ METHODS
 
     If neither the package nor the distribution path can be found in any of
     the indexes, returns undef.
+
+  clear_cache()
+    Deletes the cached index files. Any subsequent calls to the "locate"
+    method will cause the index files to be fetched anew.
 
 MOTIVATION
     The CPAN module also provides a mechanism for locating packages or
@@ -160,8 +164,8 @@ SUPPORT
 
     *   CPAN Testers Matrix
 
-        The CPAN Testers Matrix is a website that provides a visual way to
-        determine what Perls/platforms PASSed for a distribution.
+        The CPAN Testers Matrix is a website that provides a visual overview
+        of the test results for a distribution on various Perls/platforms.
 
         <http://matrix.cpantesters.org/?dist=Package-Locator>
 

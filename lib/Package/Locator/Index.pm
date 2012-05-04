@@ -18,7 +18,7 @@ use namespace::autoclean;
 
 #------------------------------------------------------------------------
 
-our $VERSION = '0.004'; # VERSION
+our $VERSION = '0.006'; # VERSION
 
 #------------------------------------------------------------------------
 
@@ -30,6 +30,7 @@ has repository_url => (
     coerce    => 1,
 );
 
+#------------------------------------------------------------------------
 
 
 has user_agent => (
@@ -37,6 +38,8 @@ has user_agent => (
    isa         => 'LWP::UserAgent',
    default     => sub { LWP::UserAgent->new() },
 );
+
+#------------------------------------------------------------------------
 
 
 has cache_dir => (
@@ -46,6 +49,7 @@ has cache_dir => (
    coerce     => 1,
 );
 
+#------------------------------------------------------------------------
 
 
 has force => (
@@ -54,6 +58,8 @@ has force => (
    default    => 0,
 );
 
+#------------------------------------------------------------------------
+
 
 has index_file => (
     is         => 'ro',
@@ -61,6 +67,8 @@ has index_file => (
     init_arg   => undef,
     lazy_build => 1,
 );
+
+#------------------------------------------------------------------------
 
 
 has distributions => (
@@ -72,6 +80,9 @@ has distributions => (
 );
 
 
+#------------------------------------------------------------------------
+
+
 
 has packages => (
    is         => 'ro',
@@ -80,6 +91,9 @@ has packages => (
    default    => sub { $_[0]->_data->{packages} },
    lazy       => 1,
 );
+
+
+#------------------------------------------------------------------------
 
 
 has _data => (
@@ -119,10 +133,10 @@ sub _build__data {
 
     my $file = $self->index_file();
     open my $fh, '<:gzip', $file or croak "Failed to open index file $file: $!";
-    my $data = $self->__read_index($fh);
+    my $index_data = $self->__read_index($fh);
     close $fh;
 
-    return $data;
+    return $index_data;
 }
 
 #------------------------------------------------------------------------------
@@ -194,7 +208,7 @@ Package::Locator::Index - The package index of a repository
 
 =head1 VERSION
 
-version 0.004
+version 0.006
 
 =head1 SYNOPSIS
 
