@@ -1,24 +1,23 @@
-package Package::Locator::Index;
-
 # ABSTRACT: The package index of a repository
+
+package Package::Locator::Index;
 
 use Moose;
 use MooseX::Types::URI qw(Uri);
 use MooseX::Types::Path::Class;
+use MooseX::MarkAsMethods (autoclean => 1);
 
 use Carp;
 use File::Temp;
 use Path::Class;
-use PerlIO::gzip;
+use IO::Zlib;
 use LWP::UserAgent;
 use URI::Escape;
 use URI;
 
-use namespace::autoclean;
-
 #------------------------------------------------------------------------
 
-our $VERSION = '0.006'; # VERSION
+our $VERSION = '0.007'; # VERSION
 
 #------------------------------------------------------------------------
 
@@ -131,8 +130,8 @@ sub _build_index_file {
 sub _build__data {
     my ($self) = @_;
 
-    my $file = $self->index_file();
-    open my $fh, '<:gzip', $file or croak "Failed to open index file $file: $!";
+    my $file = $self->index_file->stringify;
+    my $fh = IO::Zlib->new($file, 'rb') or croak "Failed to open index file $file: $!";
     my $index_data = $self->__read_index($fh);
     close $fh;
 
@@ -196,7 +195,7 @@ __PACKAGE__->meta->make_immutable();
 #------------------------------------------------------------------------
 1;
 
-
+__END__
 
 =pod
 
@@ -208,7 +207,7 @@ Package::Locator::Index - The package index of a repository
 
 =head1 VERSION
 
-version 0.006
+version 0.007
 
 =head1 SYNOPSIS
 
@@ -317,7 +316,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
-
-__END__
-

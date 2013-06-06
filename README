@@ -1,8 +1,8 @@
 NAME
-    Package::Locator - Find the distribution that provides a given package
+    Package::Locator - Find a package among CPAN-like repositories
 
 VERSION
-    version 0.006
+    version 0.007
 
 SYNOPSIS
       use Package::Locator;

@@ -1,8 +1,9 @@
+# ABSTRACT: Find a package among CPAN-like repositories
+
 package Package::Locator;
 
-# ABSTRACT: Find the distribution that provides a given package
-
 use Moose;
+use MooseX::MarkAsMethods (autoclean => 1);
 use MooseX::Types::Path::Class;
 
 use Carp;
@@ -15,11 +16,11 @@ use URI;
 use Package::Locator::Index;
 
 use version;
-use namespace::autoclean;
+
 
 #------------------------------------------------------------------------------
 
-our $VERSION = '0.006'; # VERSION
+our $VERSION = '0.007'; # VERSION
 
 #------------------------------------------------------------------------------
 
@@ -221,7 +222,7 @@ __PACKAGE__->meta->make_immutable();
 
 1;
 
-
+__END__
 
 =pod
 
@@ -231,11 +232,11 @@ placeholders metacpan
 
 =head1 NAME
 
-Package::Locator - Find the distribution that provides a given package
+Package::Locator - Find a package among CPAN-like repositories
 
 =head1 VERSION
 
-version 0.006
+version 0.007
 
 =head1 SYNOPSIS
 
@@ -466,7 +467,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
-
-__END__
-
