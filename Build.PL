@@ -17,7 +17,7 @@ my %module_build_args = (
     "Jeffrey Ryan Thalhammer <jeff\@imaginative-software.com>"
   ],
   "dist_name" => "Package-Locator",
-  "dist_version" => "0.007",
+  "dist_version" => "0.008",
   "license" => "perl",
   "module_name" => "Package::Locator",
   "recommends" => {},
@@ -42,7 +42,6 @@ my %module_build_args = (
   "test_requires" => {
     "File::Find" => 0,
     "FindBin" => 0,
-    "PerlIO::gzip" => 0,
     "Test::Exception" => 0,
     "Test::More" => 0,
     "strict" => 0,

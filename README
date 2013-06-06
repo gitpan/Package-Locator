@@ -2,7 +2,7 @@ NAME
     Package::Locator - Find a package among CPAN-like repositories
 
 VERSION
-    version 0.007
+    version 0.008
 
 SYNOPSIS
       use Package::Locator;

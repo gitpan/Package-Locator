@@ -6,7 +6,6 @@ build_requires:
   File::Find: 0
   FindBin: 0
   Module::Build: 0.3601
-  PerlIO::gzip: 0
   Test::Exception: 0
   Test::More: 0
   strict: 0
@@ -29,10 +28,10 @@ no_index:
 provides:
   Package::Locator:
     file: lib/Package/Locator.pm
-    version: 0.007
+    version: 0.008
   Package::Locator::Index:
     file: lib/Package/Locator/Index.pm
-    version: 0.007
+    version: 0.008
 requires:
   CPAN::DistnameInfo: 0
   Carp: 0
@@ -51,4 +50,4 @@ requires:
 resources:
   bugtracker: https://github.com/thaljef/Package-Locator/issues
   repository: git://github.com/thaljef/Package-Locator.git
-version: 0.007
+version: 0.008
