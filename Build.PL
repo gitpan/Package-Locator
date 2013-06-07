@@ -17,7 +17,7 @@ my %module_build_args = (
     "Jeffrey Ryan Thalhammer <jeff\@imaginative-software.com>"
   ],
   "dist_name" => "Package-Locator",
-  "dist_version" => "0.008",
+  "dist_version" => "0.009",
   "license" => "perl",
   "module_name" => "Package::Locator",
   "recommends" => {},

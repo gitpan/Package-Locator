@@ -28,10 +28,10 @@ no_index:
 provides:
   Package::Locator:
     file: lib/Package/Locator.pm
-    version: 0.008
+    version: 0.009
   Package::Locator::Index:
     file: lib/Package/Locator/Index.pm
-    version: 0.008
+    version: 0.009
 requires:
   CPAN::DistnameInfo: 0
   Carp: 0
@@ -50,4 +50,4 @@ requires:
 resources:
   bugtracker: https://github.com/thaljef/Package-Locator/issues
   repository: git://github.com/thaljef/Package-Locator.git
-version: 0.008
+version: 0.009
